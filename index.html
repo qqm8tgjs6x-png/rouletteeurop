@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>🐻 Roulette — Quiz + Révision</title>
+
+<style>
+:root{--bd:#ddd;--tx:#111;--mut:#666;--bg:#fff;--ok:#0a7a20;--bad:#c91818}
+body{font-family:-apple-system,system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:var(--tx)}
+.wrap{max-width:980px;margin:0 auto;padding:18px}
+.card{border:1px solid var(--bd);border-radius:18px;padding:18px}
+h1{text-align:center;margin:0 0 10px}
+.tabs{display:flex;justify-content:center;gap:10px;margin:10px 0}
+.tabbtn{padding:10px 14px;border-radius:999px;border:1px solid var(--bd);background:#f6f6f6}
+.tabbtn.active{background:#eee;font-weight:700}
+
+.big{font-size:84px;font-weight:900;text-align:center}
+.big.good{color:var(--ok)}
+.big.bad{color:var(--bad)}
+
+.timer{text-align:center;font-size:30px;margin:6px 0}
+.row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+.inputs{display:flex;justify-content:center;gap:10px;margin:12px 0}
+input.num{width:64px;font-size:24px;text-align:center;border-radius:12px;border:1px solid #bbb;padding:10px}
+button{padding:10px 14px;border-radius:12px;border:1px solid #bbb;background:#f5f5f5}
+select{padding:8px;border-radius:10px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.tile{border:1px solid #ddd;border-radius:14px;padding:10px;background:#fafafa}
+.tileHead{font-size:20px;font-weight:900;margin-bottom:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid #ccc;border-radius:999px;padding:4px 8px;font-weight:700;background:white}
+
+.hidden{display:none}
+.footer{text-align:center;margin-top:12px;font-weight:700}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+<div class="card">
+
+<h1>🐻 Roulette Quiz + Révision</h1>
+
+<div class="tabs">
+<button class="tabbtn active" id="tabQuizBtn" onclick="showTab('quiz')">Quiz</button>
+<button class="tabbtn" id="tabRevBtn" onclick="showTab('rev')">Révision</button>
+</div>
+
+<!-- QUIZ -->
+<div id="tabQuiz">
+<div id="number" class="big">—</div>
+<div id="timerUI" class="timer"></div>
+
+<div class="row">
+<select id="timer" onchange="setTimerOnly()">
+<option value="0">OFF</option>
+<option value="5">5s</option>
+<option value="10" selected>10s</option>
+</select>
+</div>
+
+<div class="inputs">
+<input id="a" class="num" maxlength="2" oninput="next(this,0)">
+<input id="b" class="num" maxlength="2" oninput="next(this,1)">
+<input id="c" class="num" maxlength="2" oninput="next(this,2)">
+<input id="d" class="num" maxlength="2" oninput="next(this,3)">
+<input id="e" class="num" maxlength="2" oninput="next(this,4)">
+</div>
+
+<div class="row">
+<button onclick="startTimer()">GO</button>
+<button onclick="check()">Vérifier</button>
+<button onclick="newNum()">Nouveau</button>
+<button onclick="showAnswer()">Réponse</button>
+</div>
+
+<div id="result"></div>
+<div class="footer">🐻 T’es la plus forte, ne lâche rien 🐻</div>
+</div>
+
+<!-- REVISION -->
+<div id="tabRev" class="hidden">
+<div class="grid" id="revGrid"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+const wheel=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+let current=0,solution=[];
+let t=null,remaining=0,started=false,timerSec=10;
+
+function mod(n){return((n%37)+37)%37;}
+function around(n){
+let i=wheel.indexOf(n);
+return[wheel[mod(i-2)],wheel[mod(i-1)],n,wheel[mod(i+1)],wheel[mod(i+2)]];
+}
+function sorted(n){return around(n).sort((a,b)=>a-b);}
+
+function updateTimer(){timerUI.innerText=timerSec?remaining+"s":"OFF";}
+function setTimerOnly(){timerSec=parseInt(timer.value)||0;clearInterval(t);remaining=timerSec;updateTimer();}
+
+function startTimer(){
+if(!timerSec||started)return;
+started=true;remaining=timerSec;updateTimer();
+t=setInterval(()=>{remaining--;updateTimer();if(remaining<=0){clearInterval(t);fail();}},1000);
+}
+
+function next(el,i){
+el.value=el.value.replace(/\D/g,'').slice(0,2);
+if(el.value.length==2&&i<4)document.querySelectorAll(".num")[i+1].focus();
+if(el.value.length==1&&(el.value=="0"||el.value>="4")&&i<4)document.querySelectorAll(".num")[i+1].focus();
+}
+
+function newNum(){
+clearInterval(t);started=false;
+current=Math.floor(Math.random()*37);
+number.innerText=current;
+number.classList.remove("good","bad");
+solution=sorted(current);
+["a","b","c","d","e"].forEach(x=>document.getElementById(x).value="");
+remaining=timerSec;updateTimer();
+}
+
+function check(){
+let v=[a,b,c,d,e].map(x=>parseInt(x.value));
+if(v.includes(NaN))return alert("Remplis tout");
+if(JSON.stringify(v)==JSON.stringify(solution)){number.classList.add("good");result.innerText="Correct";}
+else{number.classList.add("bad");result.innerText="Faux: "+solution.join(", ");}
+}
+
+function showAnswer(){result.innerText="Réponse: "+solution.join(", ");}
+
+function fail(){number.classList.add("bad");result.innerText="Temps écoulé";}
+
+function showTab(t){
+tabQuiz.classList.toggle("hidden",t!="quiz");
+tabRev.classList.toggle("hidden",t!="rev");
+tabQuizBtn.classList.toggle("active",t=="quiz");
+tabRevBtn.classList.toggle("active",t=="rev");
+}
+
+function renderRev(){
+revGrid.innerHTML="";
+for(let n=0;n<=36;n++){
+let d=document.createElement("div");d.className="tile";
+d.innerHTML=`<div class="tileHead">${n}</div><div class="chips">${sorted(n).map(x=>"<span class='chip'>"+x+"</span>").join("")}</div>`;
+revGrid.appendChild(d);
+}
+}
+
+setTimerOnly();
+newNum();
+renderRev();
+</script>
+
+</body>
+</html>
