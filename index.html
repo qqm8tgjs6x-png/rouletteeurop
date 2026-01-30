@@ -3,57 +3,45 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🧸 Roulette — Quiz + Révision</title>
+  <title>🧸 Roulette — Quiz + Révision + Erreurs</title>
 
   <style>
     :root{
-      --bd:#d9dde3;
-      --bg:#ffffff;
-      --tx:#111;
-      --mut:#6b7280;
-      --ok:#16a34a;
-      --bad:#dc2626;
-      --btnbg:#f5f5f5;
+      --bd:#d9dde3; --bg:#ffffff; --tx:#111; --mut:#6b7280;
+      --ok:#16a34a; --bad:#dc2626; --btnbg:#f5f5f5;
     }
     body{
       margin:0; background:var(--bg); color:var(--tx);
       font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
     }
-    .wrap{ max-width:760px; margin:0 auto; padding:18px; }
+    .wrap{ max-width:900px; margin:0 auto; padding:18px; }
     .card{
       border:1px solid var(--bd); border-radius:18px; padding:18px;
       box-shadow:0 1px 0 rgba(0,0,0,.03);
     }
     h1{ margin:0 0 10px; text-align:center; font-size:22px; }
-    .tabs{ display:flex; justify-content:center; gap:10px; margin:8px 0 10px; }
+    .tabs{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:8px 0 10px; }
     .tab{
-      border:1px solid var(--bd);
-      background:var(--btnbg);
-      border-radius:999px;
-      padding:10px 14px;
-      font-weight:700;
-      cursor:pointer;
+      border:1px solid var(--bd); background:var(--btnbg);
+      border-radius:999px; padding:10px 14px; font-weight:700; cursor:pointer;
     }
     .tab.active{ outline:2px solid rgba(59,130,246,.25); }
+
     .section{ display:none; }
     .section.active{ display:block; }
 
     .big{
       font-size:88px; font-weight:900; text-align:center; letter-spacing:1px;
       margin:10px 0 6px;
-      transition:color .15s ease;
     }
     .big.ok{ color:var(--ok); }
     .big.bad{ color:var(--bad); }
 
-    .timerLine{
-      text-align:center; margin:6px 0 10px;
-      font-size:32px; font-weight:800;
-    }
+    .timerLine{ text-align:center; margin:6px 0 10px; font-size:32px; font-weight:800; }
     .timerLine .muted{ font-size:14px; font-weight:600; color:var(--mut); display:block; margin-top:2px; }
+
     .controlsTop{
-      display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:6px 0 12px;
-      align-items:center;
+      display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:6px 0 12px; align-items:center;
     }
     select{
       font-size:16px; padding:10px 12px; border-radius:12px;
@@ -67,35 +55,36 @@
       background:#fff;
     }
     button{
-      font-size:16px; padding:11px 14px;
-      border-radius:12px; border:1px solid var(--bd);
-      background:var(--btnbg);
-      cursor:pointer;
+      font-size:16px; padding:11px 14px; border-radius:12px;
+      border:1px solid var(--bd); background:var(--btnbg); cursor:pointer;
       min-width:120px;
     }
     button.primary{ font-weight:800; }
+    button.danger{ border-color:#f3b4b4; background:#fff5f5; }
     #result{ text-align:center; font-size:18px; margin-top:10px; min-height:26px; }
-    .footer{
-      text-align:center; margin-top:16px; font-weight:800; font-size:18px;
-    }
+    .footer{ text-align:center; margin-top:16px; font-weight:800; font-size:18px; }
     .hint{ text-align:center; color:var(--mut); margin:0 0 8px; }
 
-    /* Révision */
-    .revBox{ margin-top:10px; }
-    .revGrid{
-      display:grid; grid-template-columns:repeat(2, minmax(0,1fr));
+    /* Listes (Révision & Erreurs) */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
       gap:10px;
+      margin-top:10px;
     }
-    .revItem{
-      border:1px solid var(--bd); border-radius:14px; padding:10px 12px;
+    .item{
+      border:1px solid var(--bd);
+      border-radius:14px;
+      padding:10px 12px;
       background:#fff;
     }
-    .revItem .n{ font-weight:900; font-size:18px; }
-    .revItem .v{ color:#111; margin-top:4px; font-weight:700; }
+    .item .n{ font-weight:900; font-size:18px; margin-bottom:6px; }
+    .line{ color:#111; font-weight:700; margin:4px 0; }
+    .line small{ color:var(--mut); font-weight:700; }
+    .empty{ text-align:center; color:var(--mut); margin-top:16px; font-weight:700; }
     @media (max-width:520px){
       .big{ font-size:76px; }
       .timerLine{ font-size:28px; }
-      .revGrid{ grid-template-columns:1fr; }
       button{ min-width:140px; }
     }
   </style>
@@ -104,20 +93,21 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>🧸 Roulette Quiz + Révision</h1>
+      <h1>🧸 Roulette — Quiz + Révision + Erreurs</h1>
 
       <div class="tabs">
-        <button class="tab active" id="tabQuiz" type="button">Quiz</button>
-        <button class="tab" id="tabRev" type="button">Révision</button>
+        <button class="tab active" id="tabQuiz" type="button">🎯 Quiz</button>
+        <button class="tab" id="tabRev" type="button">📚 Révision</button>
+        <button class="tab" id="tabErr" type="button">❌ Erreurs</button>
       </div>
 
       <!-- QUIZ -->
       <div class="section active" id="quiz">
         <div class="big" id="num">—</div>
 
-        <div class="timerLine" id="timerLine">
+        <div class="timerLine">
           <span id="timerText">—</span>
-          <span class="muted">Minuteur (optionnel)</span>
+          <span class="muted">Le timer démarre uniquement quand tu appuies sur GO</span>
         </div>
 
         <div class="controlsTop">
@@ -126,7 +116,7 @@
             <option value="5">5s</option>
             <option value="10">10s</option>
           </select>
-          <button class="primary" id="goBtn" type="button">GO</button>
+          <button class="primary" id="goBtn" type="button">🚀 GO</button>
         </div>
 
         <p class="hint">Entre les 5 nombres du plus petit au plus grand.</p>
@@ -144,18 +134,27 @@
           <button id="verifyBtn" type="button">✅ Vérifier</button>
           <button id="newBtn" type="button">🎲 Nouveau</button>
           <button id="showBtn" type="button">👁️ Réponse</button>
+          <button id="clearBtn" type="button">🧽 Effacer</button>
         </div>
 
         <div id="result"></div>
-
         <div class="footer">🧸 T’es la plus forte, ne lâche rien 🧸</div>
       </div>
 
       <!-- RÉVISION -->
       <div class="section" id="revision">
-        <p class="hint">Tous les numéros du cylindre avec “les 2 voisins” (triés) — juste les nombres, sans “et les 2”.</p>
-        <div class="revBox">
-          <div class="revGrid" id="revGrid"></div>
+        <p class="hint">Tous les numéros du cylindre avec “N et les 2” (triés).</p>
+        <div class="grid" id="revGrid"></div>
+      </div>
+
+      <!-- ERREURS -->
+      <div class="section" id="errors">
+        <div class="row">
+          <button class="danger" id="clearErrorsBtn" type="button">🧹 Effacer les erreurs</button>
+        </div>
+        <div id="errorsGridWrap">
+          <div class="grid" id="errGrid"></div>
+          <div class="empty" id="errEmpty">Aucune erreur pour l’instant ✅</div>
         </div>
       </div>
 
@@ -163,37 +162,51 @@
   </div>
 
 <script>
-  // Ordre du cylindre roulette européenne (simple zéro)
+  // Ordre cylindre roulette européenne (simple zéro)
   const wheel = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
-  const K = 2; // "les 2 voisins"
+  const K = 2;
 
   const $ = (id) => document.getElementById(id);
 
+  // UI
   const numEl = $("num");
   const resultEl = $("result");
   const timerSelect = $("timerSelect");
   const timerText = $("timerText");
-  const goBtn = $("goBtn");
-  const verifyBtn = $("verifyBtn");
-  const newBtn = $("newBtn");
-  const showBtn = $("showBtn");
 
   const inputs = [$("a"), $("b"), $("c"), $("d"), $("e")];
 
-  let current = null;
+  // Tabs
+  const tabQuiz = $("tabQuiz");
+  const tabRev  = $("tabRev");
+  const tabErr  = $("tabErr");
+  const secQuiz = $("quiz");
+  const secRev  = $("revision");
+  const secErr  = $("errors");
+
+  // Timer
   let timerId = null;
   let remaining = 0;
   let timerRunning = false;
 
+  // Quiz state
+  let current = null;
+
+  // Errors state (persisted)
+  const ERR_KEY = "roulette_errors_v1";
+  let errors = loadErrors(); // array of {n, user:[..], expected:[..], ts}
+
   function mod(n){ return ((n % 37) + 37) % 37; }
 
-  function getSortedNeighbors(n){
+  function neighborsAround(n){
     const i = wheel.indexOf(n);
     const list = [];
-    for(let d=-K; d<=K; d++){
-      list.push(wheel[mod(i + d)]);
-    }
-    return list.sort((a,b)=>a-b);
+    for(let d=-K; d<=K; d++) list.push(wheel[mod(i + d)]);
+    return list; // autour
+  }
+
+  function neighborsSorted(n){
+    return [...neighborsAround(n)].sort((a,b)=>a-b);
   }
 
   function setBigState(state){ // "ok" | "bad" | ""
@@ -201,23 +214,8 @@
     if(state) numEl.classList.add(state);
   }
 
-  function cleanInputValue(v){
-    // garde seulement des chiffres
-    const s = (v ?? "").toString().replace(/[^\d]/g,"");
-    return s;
-  }
-
-  function readAnswers(){
-    return inputs.map(x => cleanInputValue(x.value));
-  }
-
-  function allFilledAsNumbers(arr){
-    // ici: 5 champs non vides, entre 0 et 36
-    if(arr.some(v => v === "")) return false;
-    const nums = arr.map(v => Number(v));
-    if(nums.some(n => Number.isNaN(n))) return false;
-    if(nums.some(n => n < 0 || n > 36)) return false;
-    return true;
+  function cleanDigits(v){
+    return (v ?? "").toString().replace(/[^\d]/g,"");
   }
 
   function stopTimer(){
@@ -245,111 +243,180 @@
         timerId = null;
         timerRunning = false;
         resultEl.textContent = "Temps écoulé";
-        setBigState("bad"); // rouge
+        setBigState("bad");
       }
     }, 1000);
+  }
+
+  function clearInputs(){
+    inputs.forEach(i => i.value = "");
+    inputs[0].focus({preventScroll:true});
   }
 
   function newQuestion(){
     stopTimer();
     setBigState("");
     resultEl.textContent = "";
-    inputs.forEach(i => i.value = "");
-    // numéro au hasard 0..36
+    clearInputs();
     current = Math.floor(Math.random() * 37);
     numEl.textContent = current;
-    // focus premier champ
-    inputs[0].focus({preventScroll:true});
+  }
+
+  function readAnswers(){
+    return inputs.map(x => cleanDigits(x.value));
+  }
+
+  function allFilledAsNumbers(arr){
+    if(arr.some(v => v === "")) return false;
+    const nums = arr.map(v => Number(v));
+    if(nums.some(n => Number.isNaN(n))) return false;
+    if(nums.some(n => n < 0 || n > 36)) return false;
+    return true;
+  }
+
+  function addError(n, userArr, expectedArr){
+    // si erreur déjà existante pour ce n, on remplace par la plus récente
+    errors = errors.filter(e => e.n !== n);
+    errors.unshift({ n, user: userArr, expected: expectedArr, ts: Date.now() });
+    saveErrors();
+    renderErrors();
   }
 
   function check(){
     if(current === null) return;
 
-    const ans = readAnswers();
-    if(!allFilledAsNumbers(ans)){
+    const ansStr = readAnswers();
+    if(!allFilledAsNumbers(ansStr)){
       resultEl.textContent = "Remplis les 5 cases avec des nombres (0 à 36).";
       return;
     }
 
-    const user = ans.map(Number);
-    const expected = getSortedNeighbors(current);
+    const user = ansStr.map(Number);
+    const expected = neighborsSorted(current);
 
     const ok = JSON.stringify(user) === JSON.stringify(expected);
 
+    stopTimer();
+
     if(ok){
       resultEl.textContent = "✅ Correct";
-      setBigState("ok"); // vert
-      stopTimer();
-    }else{
+      setBigState("ok");
+    } else {
       resultEl.textContent = "❌ Faux — " + expected.join(", ");
-      setBigState("bad"); // rouge
-      stopTimer();
+      setBigState("bad");
+      addError(current, user, expected);
     }
   }
 
   function showAnswer(){
     if(current === null) return;
-    const expected = getSortedNeighbors(current);
+    const expected = neighborsSorted(current);
     resultEl.textContent = "Réponse : " + expected.join(", ");
   }
 
-  // Auto-focus quand 2 chiffres tapés
+  // Inputs: clavier chiffres + auto-next sur 2 chiffres
   inputs.forEach((inp, idx) => {
     inp.addEventListener("input", () => {
-      inp.value = cleanInputValue(inp.value).slice(0,2);
+      inp.value = cleanDigits(inp.value).slice(0,2);
       if(inp.value.length >= 2 && idx < inputs.length - 1){
         inputs[idx+1].focus({preventScroll:true});
       }
     });
   });
 
-  // Tabs
-  const tabQuiz = $("tabQuiz");
-  const tabRev  = $("tabRev");
-  const quizSec = $("quiz");
-  const revSec  = $("revision");
-
+  // Tabs switch
   function setTab(which){
-    const isQuiz = which === "quiz";
-    tabQuiz.classList.toggle("active", isQuiz);
-    tabRev.classList.toggle("active", !isQuiz);
-    quizSec.classList.toggle("active", isQuiz);
-    revSec.classList.toggle("active", !isQuiz);
-    if(isQuiz) inputs[0].focus({preventScroll:true});
+    tabQuiz.classList.toggle("active", which==="quiz");
+    tabRev.classList.toggle("active", which==="rev");
+    tabErr.classList.toggle("active", which==="err");
+
+    secQuiz.classList.toggle("active", which==="quiz");
+    secRev.classList.toggle("active", which==="rev");
+    secErr.classList.toggle("active", which==="err");
+
+    if(which==="quiz") inputs[0].focus({preventScroll:true});
+    if(which==="err") renderErrors();
   }
 
   tabQuiz.addEventListener("click", () => setTab("quiz"));
   tabRev.addEventListener("click", () => setTab("rev"));
+  tabErr.addEventListener("click", () => setTab("err"));
 
   // Buttons
-  goBtn.addEventListener("click", () => {
-    // GO démarre le timer choisi (si Off -> rien)
-    resultEl.textContent = "";
-    setBigState("");
-    startTimer();
-  });
+  $("goBtn").addEventListener("click", () => { resultEl.textContent=""; setBigState(""); startTimer(); });
+  $("verifyBtn").addEventListener("click", check);
+  $("newBtn").addEventListener("click", newQuestion);
+  $("showBtn").addEventListener("click", showAnswer);
+  $("clearBtn").addEventListener("click", () => { resultEl.textContent=""; setBigState(""); clearInputs(); });
 
-  verifyBtn.addEventListener("click", check);
-  newBtn.addEventListener("click", newQuestion);
-  showBtn.addEventListener("click", showAnswer);
-
-  // Remplir Révision
-  function buildRevision(){
+  // Révision rendering
+  function renderRevision(){
     const grid = $("revGrid");
     grid.innerHTML = "";
     for(let n=0; n<=36; n++){
-      const expected = getSortedNeighbors(n);
+      const expected = neighborsSorted(n);
       const div = document.createElement("div");
-      div.className = "revItem";
+      div.className = "item";
       div.innerHTML = `
         <div class="n">${n}</div>
-        <div class="v">${expected.join(", ")}</div>
+        <div class="line"><small>Réponse :</small> ${expected.join(", ")}</div>
       `;
       grid.appendChild(div);
     }
   }
 
-  buildRevision();
+  // Errors persistence
+  function loadErrors(){
+    try{
+      const raw = localStorage.getItem(ERR_KEY);
+      if(!raw) return [];
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return [];
+      return arr.slice(0, 200); // sécurité
+    }catch(e){ return []; }
+  }
+
+  function saveErrors(){
+    try{ localStorage.setItem(ERR_KEY, JSON.stringify(errors)); }catch(e){}
+  }
+
+  function clearErrors(){
+    errors = [];
+    saveErrors();
+    renderErrors();
+  }
+
+  $("clearErrorsBtn").addEventListener("click", clearErrors);
+
+  function renderErrors(){
+    const grid = $("errGrid");
+    const empty = $("errEmpty");
+
+    grid.innerHTML = "";
+
+    if(!errors.length){
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    for(const e of errors){
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div class="n">${e.n}</div>
+        <div class="line"><small>Ta réponse :</small> ${e.user.join(", ")}</div>
+        <div class="line"><small>Bonne réponse :</small> ${e.expected.join(", ")}</div>
+      `;
+      grid.appendChild(div);
+    }
+  }
+
+  // Init
+  timerSelect.value = "10";
+  timerText.textContent = "—";
+  renderRevision();
+  renderErrors();
   newQuestion();
 </script>
 
